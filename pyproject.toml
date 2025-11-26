@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "starlink-grpc"
+version = "0.1.0"
+description = ""
+authors = ["chrisongg"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.32.5"
+python-dotenv = "^1.2.1"
+pandas = "^2.3.3"
+grpcio = "^1.76.0"
+grpcio-tools = "^1.76.0"
+protobuf = "^6.33.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
