@@ -88,9 +88,6 @@ Desktop.ini
 # Test output
 test
 
-# generated protobuf file
-protobuf/
-
 # data files
 data/
 
