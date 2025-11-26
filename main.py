@@ -1,7 +1,4 @@
 from src.client import get_grpc_response
-from src.api import get_all_user_terminals
-
-import json
 
 
 if __name__ == "__main__":
