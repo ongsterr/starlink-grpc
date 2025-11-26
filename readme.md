@@ -42,4 +42,34 @@ Simple utilities to query:
 - Some requests in [`src/api.py`](src/api.py) disable SSL verification (verify=False) — adjust for production.
 - Output files (JSON/CSV) are written into `./data/` for easy inspection.
 
-If you want, I can add example commands or a minimal usage script for common workflows.
+## Usage examples
+
+1. Query Starlink HTTP APIs / telemetry
+
+- Get all user terminals: call [`src.api.get_all_user_terminals`](src/api.py).
+- Produce telemetry CSVs & parsed results: call [`src.api.generate_telemetry_stream`](src/api.py). Results are saved in `./data/`.
+
+2. Query local device gRPC server
+
+- Use [`src.client.get_grpc_response`](src/client.py) to run requests against the local router gRPC server (see [main.py](main.py) for an example call).
+- Use [`src.client.get_routers_clients`](src/client.py) to fetch Wi‑Fi clients across routers returned by the HTTP API.
+
+## Quick start (examples)
+
+1. Setup a virtual environment and install deps (example using pip)
+
+   ```
+   poetry init
+   poetry install
+   ```
+
+2. Set required secrets (example .env)
+
+- CLIENT_ID_PROD=...
+- CLIENT_SECRET_PROD=...
+
+3. Run some example scripts provided in `main.py`.
+
+   ```
+   poetry run python main.py
+   ```
