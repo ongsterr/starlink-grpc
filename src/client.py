@@ -14,7 +14,7 @@ from protobuf.spacex.api.device.wifi_pb2 import WifiGetClientsRequest, WifiGetDi
 from src.api import get_all_user_terminals
 
 
-def get_grpc_response(target_id: str, req_type: str):
+def get_grpc_response(req_type: str, target_id=None):
     """
     Available req_types:
     - get_device_status
@@ -63,8 +63,8 @@ def get_grpc_response(target_id: str, req_type: str):
     return response_dict
 
 
-def get_routers_clients(account_number: str):
-    user_terminals_resp = get_all_user_terminals(account_number)
+def get_routers_clients():
+    user_terminals_resp = get_all_user_terminals()
     router_ids = [
         {"terminal_id": terminal["id"], "router_id": router["routerId"]}
         for terminal in user_terminals_resp["content"]["results"]
