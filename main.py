@@ -1,12 +1,8 @@
-from src.client import get_grpc_response
-from src.api import get_accounts
+from src.pipeline import run_wifi_clients_pipeline
+from src.utils import generate_wifi_clients_dataset
 
 
 if __name__ == "__main__":
-    ### example grpc request to router server
-    router_id = "0100000000000000014FB585"
-    get_grpc_response(req_type="get_device_info", target_id=router_id)
+    # run_wifi_clients_pipeline(interval_s=30, runtime_min=60)
 
-    ### example api request
-    accounts = get_accounts()
-    print(accounts)
+    generate_wifi_clients_dataset()
