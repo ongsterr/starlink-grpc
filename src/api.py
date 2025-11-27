@@ -24,6 +24,51 @@ def get_token():
     return access_token
 
 
+def get_telemetry_cached_v1(token):
+    url = "https://starlink.com/api/device-data/cache/v1/telemetry"
+    cookies = {"Starlink.Com.Access.V1": token}
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "accountNumber": "ACC-3124814-22160-99",
+        "filters": [
+            {
+                "operator": "in",
+                "field": "DeviceId",
+                "value": [
+                    "ut01000000-00000000-00c5ebae",
+                    "ip-ut01000000-00000000-00c5ebae",
+                    "Router-0100000000000000014FA10C",
+                    "Router-0100000000000000014FB52C",
+                    "Router-0100000000000000014FCF3B",
+                    "ut01000000-00000000-00c5d242",
+                    "ip-ut01000000-00000000-00c5d242",
+                    "Router-0100000000000000014FB585",
+                    "Router-0100000000000000014FBA5D",
+                    "Router-0100000000000000014FBCED",
+                ],
+            }
+        ],
+    }
+    response = requests.post(url, cookies=cookies, headers=headers, verify=False, json=payload)
+    resp_json = response.json()
+    resp_formatted = process_telemetry_response(resp_json)
+    with open(f"./data/portal/telemetry_cached_v1_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.json", "w") as f:
+        json.dump(resp_formatted, f, indent=4)
+
+    router_telemetry = list(filter(lambda x: x["DeviceType"] == "Router", resp_formatted))
+    df_router = pd.DataFrame(router_telemetry)
+    user_terminal_telemetry = list(filter(lambda x: x["DeviceType"] == "UserTerminal", resp_formatted))
+    df_user_terminal = pd.DataFrame(user_terminal_telemetry)
+
+    df_router.to_csv(f"./data/portal/router_telemetry_cached_v1_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False)
+    df_user_terminal.to_csv(f"./data/portal/user_terminal_telemetry_cached_v1_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False)
+
+    return {
+        "router": df_router,
+        "user_terminal": df_user_terminal,
+    }
+
+
 def get_accounts(version: str = "v2"):
     token = get_token()
     url = starlink_api_config[version]["get_accounts"]()["url"]
@@ -165,13 +210,9 @@ def reboot_user_terminal(account_number: str, device_id: str):
 
 def get_telemetry_cached(account_number=None, include_user_terminals=True, include_routers=True, version="v2"):
     token = get_token()
-    url = starlink_api_config[version]["get_telemetry_cached"](account_number, include_user_terminals, include_routers)[
-        "url"
-    ]
+    url = starlink_api_config[version]["get_telemetry_cached"](account_number, include_user_terminals, include_routers)["url"]
     headers = {"Authorization": f"Bearer {token}"}
-    payload = starlink_api_config[version]["get_telemetry_cached"](
-        account_number, include_user_terminals, include_routers
-    )["payload"]
+    payload = starlink_api_config[version]["get_telemetry_cached"](account_number, include_user_terminals, include_routers)["payload"]
     response = requests.post(url, headers=headers, verify=False, json=payload)
     resp_json = response.json()
 
@@ -205,9 +246,7 @@ def process_telemetry_response(resp):
                 data = {keys[i]: row[i] for i in range(len(keys))}
                 data["DeviceType"] = device_types.get(col_type, "Unknown")
                 data["ActiveAlertsVerbose"] = (
-                    [alerts_by_device_type[col_type].get(str(alert), "Unknown Alert") for alert in data["ActiveAlerts"]]
-                    if data.get("ActiveAlerts")
-                    else []
+                    [alerts_by_device_type[col_type].get(str(alert), "Unknown Alert") for alert in data["ActiveAlerts"]] if data.get("ActiveAlerts") else []
                 )
                 formatted_output.append(data)
 
@@ -231,17 +270,11 @@ def generate_telemetry_stream(account_number: str, batch_size: int = 10000, max_
 
     if len(results_router) > 0:
         results_router_df = pd.DataFrame(results_router)
-        results_router_df["UtcDatetime"] = pd.to_datetime(
-            results_router_df["UtcTimestampNs"], unit="ns", utc=True
-        ).dt.strftime("%Y-%m-%d %H:%M:%S")
-        results_router_df["RowKey"] = (
-            results_router_df["DeviceId"].astype(str) + "-" + results_router_df["UtcTimestampNs"].astype(str)
-        )
+        results_router_df["UtcDatetime"] = pd.to_datetime(results_router_df["UtcTimestampNs"], unit="ns", utc=True).dt.strftime("%Y-%m-%d %H:%M:%S")
+        results_router_df["RowKey"] = results_router_df["DeviceId"].astype(str) + "-" + results_router_df["UtcTimestampNs"].astype(str)
         results_router_df["AccountNumber"] = account_number
 
-        results_router_df.to_csv(
-            f"./data/router_telemetry_data_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False
-        )
+        results_router_df.to_csv(f"./data/router_telemetry_data_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False)
     else:
         results_router_df = pd.DataFrame()
 
@@ -249,19 +282,13 @@ def generate_telemetry_stream(account_number: str, batch_size: int = 10000, max_
     results_user_terminal = list(filter(lambda x: x["DeviceType"] == "UserTerminal", results))
     if len(results_user_terminal) > 0:
         results_user_terminal_df = pd.DataFrame(results_user_terminal)
-        results_user_terminal_df["UtcDatetime"] = pd.to_datetime(
-            results_user_terminal_df["UtcTimestampNs"], unit="ns", utc=True
-        ).dt.strftime("%Y-%m-%d %H:%M:%S")
-        results_user_terminal_df["RowKey"] = (
-            results_user_terminal_df["DeviceId"].astype(str)
-            + "-"
-            + results_user_terminal_df["UtcTimestampNs"].astype(str)
+        results_user_terminal_df["UtcDatetime"] = pd.to_datetime(results_user_terminal_df["UtcTimestampNs"], unit="ns", utc=True).dt.strftime(
+            "%Y-%m-%d %H:%M:%S"
         )
+        results_user_terminal_df["RowKey"] = results_user_terminal_df["DeviceId"].astype(str) + "-" + results_user_terminal_df["UtcTimestampNs"].astype(str)
         results_user_terminal_df["AccountNumber"] = account_number
 
-        results_user_terminal_df.to_csv(
-            f"./data/user_terminal_telemetry_data_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False
-        )
+        results_user_terminal_df.to_csv(f"./data/user_terminal_telemetry_data_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False)
     else:
         results_user_terminal_df = pd.DataFrame()
 
@@ -269,19 +296,13 @@ def generate_telemetry_stream(account_number: str, batch_size: int = 10000, max_
     results_ip_allocation = list(filter(lambda x: x["DeviceType"] == "IpAllocs", results))
     if len(results_ip_allocation) > 0:
         results_ip_allocation_df = pd.DataFrame(results_ip_allocation)
-        results_ip_allocation_df["UtcDatetime"] = pd.to_datetime(
-            results_ip_allocation_df["UtcTimestampNs"], unit="ns", utc=True
-        ).dt.strftime("%Y-%m-%d %H:%M:%S")
-        results_ip_allocation_df["RowKey"] = (
-            results_ip_allocation_df["DeviceId"].astype(str)
-            + "-"
-            + results_ip_allocation_df["UtcTimestampNs"].astype(str)
+        results_ip_allocation_df["UtcDatetime"] = pd.to_datetime(results_ip_allocation_df["UtcTimestampNs"], unit="ns", utc=True).dt.strftime(
+            "%Y-%m-%d %H:%M:%S"
         )
+        results_ip_allocation_df["RowKey"] = results_ip_allocation_df["DeviceId"].astype(str) + "-" + results_ip_allocation_df["UtcTimestampNs"].astype(str)
         results_ip_allocation_df["AccountNumber"] = account_number
 
-        results_ip_allocation_df.to_csv(
-            f"./data/ip_allocation_telemetry_data_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False
-        )
+        results_ip_allocation_df.to_csv(f"./data/ip_allocation_telemetry_data_{datetime.now().strftime("%d-%m-%Y_%H%M%S")}.csv", index=False)
     else:
         results_ip_allocation_df = pd.DataFrame()
 

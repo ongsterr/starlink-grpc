@@ -42,7 +42,6 @@ def run_wifi_clients_pipeline(interval_s: int = 30, runtime_min: int = 60, targe
 
 
 def run_speed_test_pipeline(interval_s: int = 300, runtime_min: int = 60):
-
     data = []
     runtime_seconds = 0
     while runtime_seconds < runtime_min * 60:

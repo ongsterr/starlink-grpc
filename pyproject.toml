@@ -16,7 +16,11 @@ grpcio-tools = "^1.76.0"
 protobuf = "^6.33.1"
 speedcheck = "^0.0.5"
 fast-cli = "^0.0.8"
+duckdb = "^1.4.2"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^7.1.0"
 
 [build-system]
 requires = ["poetry-core"]

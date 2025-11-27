@@ -9,7 +9,6 @@ from protobuf.spacex.api.device.device_pb2 import (
     PingHostRequest,
     GetDeviceInfoRequest,
     GetHistoryRequest,
-    GetLocationRequest,
 )
 from protobuf.spacex.api.device.wifi_pb2 import WifiGetClientsRequest, WifiGetDiagnosticsRequest, WifiGetConfigRequest
 from src.api import get_all_user_terminals
@@ -48,8 +47,6 @@ def get_grpc_response(req_type: str, target_id=None):
         request = device_pb2.Request(target_id=target_id, wifi_get_diagnostics=WifiGetDiagnosticsRequest())
     elif req_type == "get_wifi_configs":
         request = device_pb2.Request(target_id=target_id, wifi_get_config=WifiGetConfigRequest())
-    elif req_type == "get_location":
-        request = device_pb2.Request(target_id=target_id, wifi_get_config=GetLocationRequest())
     else:
         print("Request not set up yet.")
         return
