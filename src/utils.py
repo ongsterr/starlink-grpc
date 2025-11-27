@@ -1,6 +1,5 @@
 from src.api import get_all_user_terminals
 
-# from speedcheck import Speedcheck
 from pathlib import Path
 import json
 import pandas as pd
@@ -19,14 +18,6 @@ def get_routers_list():
         for router in ut["routers"]
     ]
     return user_terminals
-
-
-# def run_speed_test():
-#     sc = Speedcheck(providers=["speedtest", "fast", "mlab", "cloudflare", "librespeed"], include_latency=True, retries=2, timeout=30)
-
-#     results = sc.run()
-
-#     return results
 
 
 def generate_wifi_clients_dataset():

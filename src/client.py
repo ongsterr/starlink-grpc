@@ -29,7 +29,7 @@ def get_grpc_response(req_type: str, target_id=None):
     """
 
     # Connect to the server
-    channel = grpc.insecure_channel("192.168.3.1:9000")
+    channel = grpc.insecure_channel("192.168.1.1:9000")
     stub = service_pb2_grpc.DeviceStub(channel)
 
     if req_type == "get_device_status":
